@@ -3,18 +3,19 @@ library(tidyverse)    #for dplayer
 library(RColorBrewer)
 library(gtrendsR)
 library(treemap)      #block map
-library(hrbrthemes)   #maybe delete
+#library(hrbrthemes)   #maybe delete
 library(maps)
 library(usmap)
 library(streamgraph)
 #devtools::install_github("hrbrmstr/streamgraph")
 
-#################################
-#import from Google with gtrends#
-#################################
+###################################
+##Import from Google with gtrends##
+###################################
 
 
-election<-gtrends(c("Naftali Bennett", "Yair Lapid", "Benjamin Netanyahu"), gprop = "web", time = "2021-04-01 2022-08-15")
+election<-gtrends(c("Naftali Bennett", "Yair Lapid", "Benjamin Netanyahu"), gprop = "web", time = "2021-04-01 2022-08-15") %>% 
+  select(-gprop)
 
 #google.trends = dcast(google.trends, date ~ keyword + geo, value.var = "hits")
 #rownames(google.trends) = google.trends$date
@@ -49,14 +50,18 @@ world_gg<- ggplot(Gov, aes(x=date, y= hits,colour= keyword) )+
         panel.grid.major.x = element_line(colour = "grey40",size= 0.25),
         panel.grid.minor.x = element_line(colour = "grey70", size = 0.15),
         axis.line = element_blank(),
-        legend.position="bottom"
+        legend.position="bottom",
+        panel.background = element_rect(fill = "lightblue",
+                                              colour = "lightblue",
+                                              size = 0.5, linetype = "solid")
   )+
   scale_y_continuous(labels=scales::percent_format(accuracy = 5L), breaks = seq(0,1, by= 0.2))+
-  geom_vline(xintercept=as.Date("2021-06-13" ), colour= "darkblue")
+  geom_vline(xintercept=as.Date("2021-06-13" ), colour= "darkblue")+
+  scale_fill_brewer(palette="Dark2")
+
 
 world_gg
-ggsave(world_gg,device = "png",
-       filename = "Interest in Israel Government Worldwide")
+ggsave(world_gg,device = "png", filename = "Interest in Israel Government Worldwide")
 
 #as.Date("2021-06-07 17:00:00 GMT","%Y-%m-%d", tz= '')
 
@@ -74,37 +79,34 @@ ggplot(by_share, aes(x=date, y= percentage,fill= keyword )) +
   scale_y_continuous(labels=scales::percent)+
   theme(legend.position="bottom",
         legend.title = element_text())+
-  scale_fill_discrete(name="")+ylab("")
+  scale_fill_discrete(name="")+ylab("")+
+  scale_fill_brewer(palette="Set2")
 
 
-####
-# box world
-####
+#############
+##box world##
+#############
 
-tree_gov<- election$interest_by_country %>%
-  filter(hits >= 1)
-
-
-gov_by_country<- tree_gov %>%
-  #mutate(n_date= seq(1,7,1/(N-1)) ) %>%
-  mutate(hits= ifelse(hits== "<1", 0, as.numeric(hits)),
-         hits= hits/100)
-
-tree_gov<- tree_gov %>% filter( hits >= 0.05,
-                                keyword ==  "Naftali Bennett" )
-
-treemap(tree_gov, title = "search for Bennet by Country",
+election$interest_by_country %>%
+  filter( hits >= 0.05,
+          keyword ==  "Naftali Bennett" ) %>%
+  mutate(hits= ifelse(hits== "<1", 0, as.numeric(hits)/100)) %>% 
+  select(location,hits) %>%
+  treemap(title = "search for Bennet by Country",
         index="location",
         vSize="hits",
         type="index")
 
-stay_world_N<- which(all_CO2$Entity %in% Continent)
-by_continent<- all_CO2[stay_world_N,]
-by_continent<- subset(by_continent, Year >= 1919)
-
-streamgraph(Gov, key="keyword", value="hits", date="n_date",order = "inside-out",
+election_streamgraph<- Gov %>% 
+  streamgraph(key="keyword", value="hits", date="date",order = "inside-out",
             offset="silhouette", width="600px", height="350px") %>%
   sg_legend(show=TRUE, label="Choose Continent: ") 
+
+election_streamgraph
+
+ggsave(election_streamgraph,device = "png", filename = "election_streamgraph as png")
+
+
 
 ###########
 # the US
