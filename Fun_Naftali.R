@@ -1,4 +1,8 @@
-library(ggplot2)      #plot 2nd generation
+
+#############
+##libraries##
+#############
+
 library(tidyverse)    #for dplayer
 library(RColorBrewer)
 library(gtrendsR)
@@ -13,9 +17,7 @@ library(streamgraph)
 ##Import from Google with gtrends##
 ###################################
 
-
-election<-gtrends(c("Naftali Bennett", "Yair Lapid", "Benjamin Netanyahu"), gprop = "web", time = "2021-04-01 2022-08-15") %>% 
-  select(-gprop)
+election<-gtrends(c("Naftali Bennett", "Yair Lapid", "Benjamin Netanyahu"), gprop = "web", time = "2021-04-10 2022-08-18")
 
 #google.trends = dcast(google.trends, date ~ keyword + geo, value.var = "hits")
 #rownames(google.trends) = google.trends$date
@@ -26,11 +28,9 @@ election<-gtrends(c("Naftali Bennett", "Yair Lapid", "Benjamin Netanyahu"), gpro
 #####################
 
 Gov<- election$interest_over_time %>%
+  select(-gprop,-category) %>% 
   mutate(hits= ifelse(hits== "<1", 0.5, as.numeric(hits)),
   hits= hits/100)
-
-#ggplot data#
-#############
 
 # the world
 
@@ -75,7 +75,6 @@ ggplot(by_share, aes(x=date, y= percentage,fill= keyword )) +
   labs(title="Annual Emissions Percentage of all by Year",
        caption = "CO2 emissions by year 1919-2019. source: Our World in Data")+
   geom_area()+
-  theme_bw()+
   scale_y_continuous(labels=scales::percent)+
   theme(legend.position="bottom",
         legend.title = element_text())+
@@ -88,10 +87,10 @@ ggplot(by_share, aes(x=date, y= percentage,fill= keyword )) +
 #############
 
 election$interest_by_country %>%
-  filter( hits >= 0.05,
-          keyword ==  "Naftali Bennett" ) %>%
+  select(location,hits,keyword) %>%
+  filter(keyword ==  "Naftali Bennett" ) %>%
   mutate(hits= ifelse(hits== "<1", 0, as.numeric(hits)/100)) %>% 
-  select(location,hits) %>%
+  filter( hits >= 0.05) %>% 
   treemap(title = "search for Bennet by Country",
         index="location",
         vSize="hits",
@@ -105,7 +104,6 @@ election_streamgraph<- Gov %>%
 election_streamgraph
 
 ggsave(election_streamgraph,device = "png", filename = "election_streamgraph as png")
-
 
 
 ###########
@@ -130,10 +128,14 @@ US_gg<- ggplot(Gov_US, aes(x=date, y= hits,colour= keyword ) )+
   theme(panel.grid =  element_blank(),
         axis.text.y =  element_text(angle = 0),
         axis.text.x =  element_text(angle = 90),
-        panel.grid.major.y = element_line(colour = "black",size = 0.5),
-        panel.grid.minor.y = element_line(colour = "grey60",size= 0.25),
-        panel.grid.major.x = element_line(colour = "grey60",size= 0.25),
-        axis.line = element_blank()
+        panel.grid.major.y = element_line(colour = "grey40",size = 0.5),
+        panel.grid.major.x = element_line(colour = "grey40",size= 0.25),
+        panel.grid.minor.x = element_line(colour = "grey70", size = 0.15),
+        axis.line = element_blank(),
+        legend.position="bottom",
+        panel.background = element_rect(fill = "lightblue",
+                                        colour = "lightblue",
+                                        size = 0.5, linetype = "solid")
   )+
   scale_y_continuous(labels=scales::percent_format(accuracy = 5L), breaks = seq(0,1, by= 0.2))+
   #scale_x_continuous(breaks = seq.Date(as.Date("2021-06-08"),as.Date("2021-06-14"),by = 14))
@@ -155,7 +157,6 @@ state_hit<- election_US$interest_by_region %>%
 
 state_hit_map<- state_hit %>%
   mutate(state = tolower(state)) %>%
-  #filter(state %in% state$state) %>%
   mutate(Bennett= Bennett/max(Bennett)) %>%
   select(state, "Bennett") %>% # -> my_df
   as.data.frame()
