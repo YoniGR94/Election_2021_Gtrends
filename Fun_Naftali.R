@@ -41,7 +41,7 @@ world_gg<- ggplot(Gov, aes(x=date, y= hits,colour= keyword) )+
   geom_line(alpha= 0.5,size= 0.8)+
   theme_classic()+
   labs (x= "date", y= "Rate",
-        caption = "data: Google Trends, 1/4/2021 - 15/8/2022",
+        caption = "data: Google Trends, 10/4/2021 - 18/8/2022",
         title= "Interest in Israel Government Worldwide")+
   theme(panel.grid =  element_blank(),
         axis.text.y =  element_text(angle = 0),
@@ -55,6 +55,7 @@ world_gg<- ggplot(Gov, aes(x=date, y= hits,colour= keyword) )+
                                               colour = "lightblue",
                                               size = 0.5, linetype = "solid")
   )+
+  scale_colour_discrete(name="")+
   scale_y_continuous(labels=scales::percent_format(accuracy = 5L), breaks = seq(0,1, by= 0.2))+
   geom_vline(xintercept=as.Date("2021-06-13" ), colour= "darkblue")+
   scale_fill_brewer(palette="Dark2")
@@ -72,14 +73,16 @@ by_share <- Gov  %>%
 
 
 ggplot(by_share, aes(x=date, y= percentage,fill= keyword )) +
-  labs(title="Annual Emissions Percentage of all by Year",
-       caption = "CO2 emissions by year 1919-2019. source: Our World in Data")+
+  labs(title="Relative Search Popularity by Candidate",
+       caption = "relative search popularity by candidate. from Google Trends, 10/4/2021 - 18/8/2022")+
   geom_area()+
   scale_y_continuous(labels=scales::percent)+
   theme(legend.position="bottom",
         legend.title = element_text())+
   scale_fill_discrete(name="")+ylab("")+
   scale_fill_brewer(palette="Set2")
+
+  
 
 
 #############
@@ -111,7 +114,7 @@ ggsave(election_streamgraph,device = "png", filename = "election_streamgraph as 
 ###########
 
 election_US<- gtrends(c("Naftali Bennett", "Yair Lapid", "Benjamin Netanyahu"), gprop = "web",
-                      time = "2021-04-01 2022-08-15", geo = "US")
+                      time = "2021-04-10 2022-08-18", geo = "US")
 
 
 Gov_US<- election_US$interest_over_time %>%
@@ -123,7 +126,7 @@ US_gg<- ggplot(Gov_US, aes(x=date, y= hits,colour= keyword ) )+
   geom_line(alpha= 0.5,size= 0.8)+
   theme_gray()+
   labs (x= "date", y= "Rate",
-        caption = "data: Google Trends, 1/4/2021 - 15/8/2022",
+        caption = "data: Google Trends, 10/4/2021 - 18/8/2022",
         title= "Interest in Israel Government in the US")+
   theme(panel.grid =  element_blank(),
         axis.text.y =  element_text(angle = 0),
@@ -137,6 +140,7 @@ US_gg<- ggplot(Gov_US, aes(x=date, y= hits,colour= keyword ) )+
                                         colour = "lightblue",
                                         size = 0.5, linetype = "solid")
   )+
+  scale_colour_discrete(name="")+
   scale_y_continuous(labels=scales::percent_format(accuracy = 5L), breaks = seq(0,1, by= 0.2))+
   #scale_x_continuous(breaks = seq.Date(as.Date("2021-06-08"),as.Date("2021-06-14"),by = 14))
   geom_vline(xintercept =  as.Date("2021-06-13 17:00:00 GMT","%Y-%m-%d"), colour= "darkblue")
@@ -167,6 +171,6 @@ plot_usmap(data = state_hit_map, values = "Bennett", color = "black") +
   theme(legend.position = "right",
         legend.box.background = element_rect(colour = "black"))+
   labs(title= "Interest in Naftali Bennett in the US by State",
-       caption = "data: Google Trends, 1/4/2021 - 15/8/2022")
+       caption = "data: Google Trends, 10/4/2021 - 18/8/2022")
 
 
